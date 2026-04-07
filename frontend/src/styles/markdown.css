@@ -1,0 +1,129 @@
+/* Prose styles for rendered markdown content */
+
+.markdown-body {
+  line-height: 1.7;
+  font-size: 0.9375rem;
+  color: var(--foreground);
+  word-break: break-word;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 1.75em;
+  margin-bottom: 0.5em;
+  color: var(--foreground);
+}
+
+.markdown-body h1 { font-size: 1.875rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
+.markdown-body h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.2em; }
+.markdown-body h3 { font-size: 1.25rem; }
+.markdown-body h4 { font-size: 1.0625rem; }
+.markdown-body h5 { font-size: 0.9375rem; }
+.markdown-body h6 { font-size: 0.875rem; color: var(--muted-foreground); }
+
+.markdown-body p {
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+
+.markdown-body a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.markdown-body a:hover {
+  opacity: 0.8;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 1.5em;
+  margin-bottom: 1em;
+}
+
+.markdown-body li {
+  margin-bottom: 0.25em;
+}
+
+.markdown-body li > ul,
+.markdown-body li > ol {
+  margin-bottom: 0;
+  margin-top: 0.25em;
+}
+
+.markdown-body blockquote {
+  border-left: 4px solid var(--border);
+  padding-left: 1em;
+  margin: 0 0 1em;
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+.markdown-body hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5em 0;
+}
+
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1em;
+  font-size: 0.875rem;
+}
+
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid var(--border);
+  padding: 0.5em 0.75em;
+  text-align: left;
+}
+
+.markdown-body th {
+  background: var(--muted);
+  font-weight: 600;
+}
+
+.markdown-body tr:nth-child(even) td {
+  background: var(--muted) / 0.4;
+}
+
+.markdown-body code:not(pre code) {
+  background: var(--muted);
+  color: var(--foreground);
+  padding: 0.15em 0.4em;
+  border-radius: 0.25em;
+  font-size: 0.875em;
+  font-family: ui-monospace, monospace;
+}
+
+/* Note: code blocks use react-syntax-highlighter via CodeBlock component;
+   this file does not style <pre> directly. */
+
+.markdown-body img {
+  max-width: 100%;
+  border-radius: var(--radius);
+}
+
+/* GFM task lists */
+.markdown-body input[type='checkbox'] {
+  margin-right: 0.4em;
+  vertical-align: middle;
+}
+
+.markdown-body li:has(> input[type='checkbox']) {
+  list-style: none;
+  margin-left: -1.2em;
+}
+
+/* GFM strikethrough */
+.markdown-body del {
+  color: var(--muted-foreground);
+}

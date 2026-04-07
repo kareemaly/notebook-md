@@ -23,13 +23,15 @@
     "bin"
   ],
   "scripts": {
-    "dev": "tsx watch src/cli/index.ts",
-    "build": "tsc",
+    "dev:server": "tsx watch src/cli/index.ts",
+    "dev:client": "cd frontend && vite",
+    "dev": "concurrently \"npm:dev:server\" \"npm:dev:client\"",
+    "build": "tsc && cd frontend && vite build",
     "start": "node dist/cli/index.js",
     "test": "vitest",
     "test:run": "vitest run",
     "lint": "eslint src tests",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && tsc --noEmit --project frontend/tsconfig.json"
   },
   "dependencies": {
     "chokidar": "^3.6.0",
@@ -45,6 +47,7 @@
     "@types/ws": "^8.5.10",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
+    "concurrently": "^9.1.2",
     "eslint": "^9.5.0",
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.3.2",

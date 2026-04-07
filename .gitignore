@@ -1,5 +1,7 @@
 node_modules
+frontend/node_modules
 dist
+notebook.config.json
 build
 coverage
 .DS_Store
