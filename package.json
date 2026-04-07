@@ -1,0 +1,55 @@
+{
+  "name": "notebook",
+  "version": "0.1.0",
+  "description": "Read-only multi-project markdown viewer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/kareemaly/notebook.git"
+  },
+  "homepage": "https://github.com/kareemaly/notebook",
+  "keywords": ["markdown", "viewer", "notes", "multi-project"],
+  "author": "Kareem Elbahrawy",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "dist/cli/index.js",
+  "bin": {
+    "notebook": "./bin/notebook.js"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "dev": "tsx watch src/cli/index.ts",
+    "build": "tsc",
+    "start": "node dist/cli/index.js",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "lint": "eslint src tests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "chokidar": "^3.6.0",
+    "commander": "^12.0.0",
+    "express": "^4.19.2",
+    "gray-matter": "^4.0.3",
+    "ws": "^8.17.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.0",
+    "@types/ws": "^8.5.10",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.5.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.2",
+    "tsx": "^4.15.6",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}
