@@ -32,7 +32,7 @@ export function SearchResults({ results, loading, activeFilePath, onSelect }: Pr
             <button
               key={`${r.filePath}:${r.line ?? i}`}
               className={cn(
-                'flex flex-col w-full text-left px-3 py-1.5 rounded text-xs gap-0.5 transition-colors',
+                'flex flex-col w-full text-left px-3 py-1.5 rounded text-xs gap-0.5 transition-colors cursor-pointer',
                 isActive
                   ? 'bg-primary text-primary-foreground'
                   : 'hover:bg-accent hover:text-accent-foreground',

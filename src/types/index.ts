@@ -2,6 +2,18 @@ export interface ProjectConfig {
   id: string;
   name: string;
   path: string; // tilde-expanded absolute path
+  /**
+   * Path prefixes (relative to the project root, POSIX separators) to
+   * include. If set and non-empty, only files whose relative path equals
+   * or begins with one of these prefixes are exposed to the viewer.
+   * Example: ["memory", "sessions", "specs/api"].
+   */
+  include?: string[];
+  /**
+   * Path prefixes to exclude. Evaluated after `include` — an excluded
+   * prefix wins. Example: ["memory/drafts"].
+   */
+  exclude?: string[];
 }
 
 export interface WatcherConfig {

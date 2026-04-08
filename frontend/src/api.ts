@@ -22,8 +22,11 @@ export async function fetchSearch(
   projectId: string,
   query: string,
   mode: SearchMode,
+  caseSensitive: boolean,
   signal: AbortSignal,
 ): Promise<SearchResult[]> {
-  const url = `/api/projects/${encodeURIComponent(projectId)}/search?q=${encodeURIComponent(query)}&mode=${mode}`;
+  const params = new URLSearchParams({ q: query, mode });
+  if (caseSensitive) params.set('cs', '1');
+  const url = `/api/projects/${encodeURIComponent(projectId)}/search?${params.toString()}`;
   return json<SearchResult[]>(await fetch(url, { signal }));
 }

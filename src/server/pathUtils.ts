@@ -1,4 +1,6 @@
 import path from 'node:path';
+import { type PathFilter } from '../projectFilter.js';
+import { isSupportedFile } from '../supportedFormats.js';
 
 /**
  * Resolves a raw client-supplied path against a project root, applying
@@ -6,10 +8,15 @@ import path from 'node:path';
  *
  * Returns the absolute path if safe and valid, or null if:
  * - the path escapes the project root (directory traversal)
- * - the resolved file is not a .md file
+ * - the resolved file does not have a supported extension
+ * - the resolved file is excluded by the project's include/exclude filter
  * - rawPath is empty or falsy
  */
-export function resolveSafePath(projectRoot: string, rawPath: string): string | null {
+export function resolveSafePath(
+  projectRoot: string,
+  rawPath: string,
+  filter?: PathFilter,
+): string | null {
   if (!rawPath) return null;
 
   // 1. Reject null bytes — they are always invalid in file paths
@@ -35,9 +42,17 @@ export function resolveSafePath(projectRoot: string, rawPath: string): string | 
     return null;
   }
 
-  // 5. Only .md files are served
-  if (path.extname(resolved).toLowerCase() !== '.md') {
+  // 5. Only supported file formats are served
+  if (!isSupportedFile(resolved)) {
     return null;
+  }
+
+  // 6. Respect the project's include/exclude filter
+  if (filter) {
+    const rel = path.relative(projectRoot, resolved);
+    if (!filter.acceptsFile(rel)) {
+      return null;
+    }
   }
 
   return resolved;

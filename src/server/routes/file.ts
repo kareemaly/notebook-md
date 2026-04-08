@@ -2,6 +2,7 @@ import type { Router } from 'express';
 import { Router as createRouter } from 'express';
 import matter from 'gray-matter';
 import fs from 'node:fs';
+import { createPathFilter } from '../../projectFilter.js';
 import type { NotebookConfig } from '../../types/index.js';
 import { resolveSafePath } from '../pathUtils.js';
 
@@ -22,7 +23,8 @@ export function fileRouter(config: NotebookConfig): Router {
       return;
     }
 
-    const resolved = resolveSafePath(project.path, rawPath);
+    const filter = createPathFilter(project.include, project.exclude);
+    const resolved = resolveSafePath(project.path, rawPath, filter);
     if (!resolved) {
       res.status(403).json({ error: 'Forbidden' });
       return;

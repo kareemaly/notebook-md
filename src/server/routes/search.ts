@@ -1,5 +1,6 @@
 import type { Router } from 'express';
 import { Router as createRouter } from 'express';
+import { createPathFilter } from '../../projectFilter.js';
 import { search } from '../../search/index.js';
 import type { NotebookConfig } from '../../types/index.js';
 
@@ -27,8 +28,20 @@ export function searchRouter(config: NotebookConfig): Router {
     }
     const mode: 'filename' | 'content' = rawMode ?? 'filename';
 
+    // `cs=1` / `cs=true` → case-sensitive. Default is insensitive.
+    const rawCs = req.query.cs;
+    const caseSensitive = rawCs === '1' || rawCs === 'true';
+
     try {
-      const results = await search(project.path, project.id, q.trim(), mode);
+      const filter = createPathFilter(project.include, project.exclude);
+      const results = await search(
+        project.path,
+        project.id,
+        q.trim(),
+        mode,
+        caseSensitive,
+        filter,
+      );
       res.json(results);
     } catch (err) {
       console.error('[notebook] search error:', err);

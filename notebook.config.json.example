@@ -3,7 +3,9 @@
   "projects": [
     {
       "name": "Work Docs",
-      "path": "~/work/docs"
+      "path": "~/work/docs",
+      "include": ["guides", "runbooks", "architecture"],
+      "exclude": ["guides/drafts"]
     },
     {
       "name": "Personal Notes",

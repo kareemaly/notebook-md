@@ -23,7 +23,7 @@ export function FrontmatterPanel({ data }: Props) {
 
   return (
     <Collapsible defaultOpen className="mb-4">
-      <CollapsibleTrigger className="flex w-full items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors py-1 group">
+      <CollapsibleTrigger className="flex w-full items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors py-1 group cursor-pointer">
         <ChevronDown className="size-3.5 transition-transform group-data-[state=closed]:-rotate-90" />
         Frontmatter
       </CollapsibleTrigger>

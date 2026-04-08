@@ -1,8 +1,41 @@
 import { Check, Copy } from 'lucide-react';
 import { useState } from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { PrismAsyncLight as SyntaxHighlighter } from 'react-syntax-highlighter';
+import oneLight from 'react-syntax-highlighter/dist/esm/styles/prism/one-light';
+import oneDark from 'react-syntax-highlighter/dist/esm/styles/prism/one-dark';
 import { Button } from '@/components/ui/button';
+import { useTheme } from '@/hooks/useTheme';
+
+// Register common languages eagerly so the first code block renders instantly.
+// Less common languages are loaded on demand by PrismAsyncLight.
+import bash from 'react-syntax-highlighter/dist/esm/languages/prism/bash';
+import json from 'react-syntax-highlighter/dist/esm/languages/prism/json';
+import jsx from 'react-syntax-highlighter/dist/esm/languages/prism/jsx';
+import tsx from 'react-syntax-highlighter/dist/esm/languages/prism/tsx';
+import typescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript';
+import javascript from 'react-syntax-highlighter/dist/esm/languages/prism/javascript';
+import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
+import markdown from 'react-syntax-highlighter/dist/esm/languages/prism/markdown';
+import yaml from 'react-syntax-highlighter/dist/esm/languages/prism/yaml';
+import css from 'react-syntax-highlighter/dist/esm/languages/prism/css';
+
+SyntaxHighlighter.registerLanguage('bash', bash);
+SyntaxHighlighter.registerLanguage('sh', bash);
+SyntaxHighlighter.registerLanguage('shell', bash);
+SyntaxHighlighter.registerLanguage('json', json);
+SyntaxHighlighter.registerLanguage('jsx', jsx);
+SyntaxHighlighter.registerLanguage('tsx', tsx);
+SyntaxHighlighter.registerLanguage('typescript', typescript);
+SyntaxHighlighter.registerLanguage('ts', typescript);
+SyntaxHighlighter.registerLanguage('javascript', javascript);
+SyntaxHighlighter.registerLanguage('js', javascript);
+SyntaxHighlighter.registerLanguage('python', python);
+SyntaxHighlighter.registerLanguage('py', python);
+SyntaxHighlighter.registerLanguage('markdown', markdown);
+SyntaxHighlighter.registerLanguage('md', markdown);
+SyntaxHighlighter.registerLanguage('yaml', yaml);
+SyntaxHighlighter.registerLanguage('yml', yaml);
+SyntaxHighlighter.registerLanguage('css', css);
 
 interface Props {
   language: string;
@@ -11,6 +44,7 @@ interface Props {
 
 export function CodeBlock({ language, value }: Props) {
   const [copied, setCopied] = useState(false);
+  const { resolvedTheme } = useTheme();
 
   async function copy() {
     await navigator.clipboard.writeText(value);
@@ -19,10 +53,10 @@ export function CodeBlock({ language, value }: Props) {
   }
 
   return (
-    <div className="relative group my-4 rounded-md border bg-[#fafafa] overflow-hidden">
+    <div className="relative group my-4 rounded-md border bg-muted/40 overflow-hidden">
       <SyntaxHighlighter
         language={language || 'text'}
-        style={oneLight}
+        style={resolvedTheme === 'dark' ? oneDark : oneLight}
         customStyle={{
           margin: 0,
           padding: '1rem',

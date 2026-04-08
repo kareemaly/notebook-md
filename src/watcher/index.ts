@@ -1,6 +1,8 @@
 import chokidar, { type FSWatcher } from 'chokidar';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createPathFilter, type PathFilter } from '../projectFilter.js';
+import { isSupportedFile } from '../supportedFormats.js';
 import type { NotebookConfig, WsMessage } from '../types/index.js';
 
 const IGNORED_DIRS = [
@@ -12,15 +14,33 @@ const IGNORED_DIRS = [
 
 /**
  * Returns true if the path should be ignored by the watcher.
- * For file entries (not directories), also rejects non-.md files.
+ * For file entries (not directories), also rejects files with
+ * unsupported extensions or paths rejected by the project filter.
+ * For directories, honours the filter's `acceptsDir` so whole
+ * excluded subtrees are never descended into.
  */
-function makeIgnored(ignoredDirs: (RegExp | ((f: string, stats?: fs.Stats) => boolean))[]) {
+function makeIgnored(
+  ignoredDirs: (RegExp | ((f: string, stats?: fs.Stats) => boolean))[],
+  projectRoot: string,
+  filter: PathFilter,
+) {
   return [
     ...ignoredDirs,
     (filePath: string, stats?: fs.Stats) => {
-      // Don't filter out directories — chokidar needs to descend into them
-      if (!stats || stats.isDirectory()) return false;
-      return !filePath.toLowerCase().endsWith('.md');
+      if (filter.isIdentity) {
+        if (!stats || stats.isDirectory()) return false;
+        return !isSupportedFile(filePath);
+      }
+      const rel = path.relative(projectRoot, filePath);
+      // Never ignore the project root itself — chokidar must be able to
+      // enter it. Anything outside the root is also left alone; chokidar
+      // won't actually descend there but belt-and-suspenders.
+      if (!rel || rel === '' || rel.startsWith('..')) return false;
+      if (!stats || stats.isDirectory()) {
+        return !filter.acceptsDir(rel);
+      }
+      if (!isSupportedFile(filePath)) return true;
+      return !filter.acceptsFile(rel);
     },
   ];
 }
@@ -48,19 +68,21 @@ export class WatcherManager {
     }
 
     this.activeProjectId = projectId;
-    this.startWatcher(project.path, projectId, onEvent);
+    const filter = createPathFilter(project.include, project.exclude);
+    this.startWatcher(project.path, projectId, onEvent, filter);
   }
 
   private startWatcher(
     projectRoot: string,
     projectId: string,
     onEvent: (msg: WsMessage) => void,
+    filter: PathFilter,
     forcePolling = false,
   ): void {
     const usePolling = forcePolling || this.usePolling;
 
     this.watcher = chokidar.watch(projectRoot, {
-      ignored: makeIgnored(IGNORED_DIRS),
+      ignored: makeIgnored(IGNORED_DIRS, projectRoot, filter),
       persistent: true,
       ignoreInitial: true,
       usePolling,
@@ -97,7 +119,7 @@ export class WatcherManager {
           );
           // Restart with polling
           this.deactivate();
-          this.startWatcher(projectRoot, projectId, onEvent, true);
+          this.startWatcher(projectRoot, projectId, onEvent, filter, true);
         } else {
           console.error('[notebook] watcher error:', err);
         }

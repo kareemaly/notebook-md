@@ -2,6 +2,8 @@ import type { Router } from 'express';
 import { Router as createRouter } from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createPathFilter, type PathFilter } from '../../projectFilter.js';
+import { isSupportedFile } from '../../supportedFormats.js';
 import type { FileNode, NotebookConfig } from '../../types/index.js';
 
 const IGNORED_DIRS = new Set([
@@ -20,10 +22,16 @@ function isIgnoredDir(name: string): boolean {
 
 /**
  * Recursively build a FileNode tree for a directory.
- * Returns dirs first (alpha), then files (alpha), .md only.
+ * Returns dirs first (alpha), then files (alpha), supported formats only.
+ * Directories that (recursively) contain zero supported files are omitted.
+ * If `filter` is provided, include/exclude path prefixes are respected.
  * Exported for use in tests.
  */
-export function buildFileTree(dir: string, rootDir: string): FileNode[] {
+export function buildFileTree(
+  dir: string,
+  rootDir: string,
+  filter: PathFilter = createPathFilter(undefined, undefined),
+): FileNode[] {
   let entries: fs.Dirent[];
   try {
     entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -35,14 +43,19 @@ export function buildFileTree(dir: string, rootDir: string): FileNode[] {
   const files: FileNode[] = [];
 
   for (const entry of entries) {
+    const absPath = path.join(dir, entry.name);
+    const relPath = path.relative(rootDir, absPath);
+
     if (entry.isDirectory()) {
-      if (!isIgnoredDir(entry.name)) {
-        const children = buildFileTree(path.join(dir, entry.name), rootDir);
-        dirs.push({ type: 'dir', name: entry.name, children });
+      if (isIgnoredDir(entry.name)) continue;
+      if (!filter.acceptsDir(relPath)) continue;
+      const children = buildFileTree(absPath, rootDir, filter);
+      // Prune: skip directories whose subtree contains no matching files.
+      if (children.length > 0) {
+        dirs.push({ type: 'dir', name: entry.name, path: relPath, children });
       }
-    } else if (entry.isFile() && entry.name.toLowerCase().endsWith('.md')) {
-      const absPath = path.join(dir, entry.name);
-      const relPath = path.relative(rootDir, absPath);
+    } else if (entry.isFile() && isSupportedFile(entry.name)) {
+      if (!filter.acceptsFile(relPath)) continue;
       files.push({ type: 'file', name: entry.name, path: relPath });
     }
   }
@@ -64,7 +77,8 @@ export function treeRouter(config: NotebookConfig): Router {
       return;
     }
 
-    const tree = buildFileTree(project.path, project.path);
+    const filter = createPathFilter(project.include, project.exclude);
+    const tree = buildFileTree(project.path, project.path, filter);
     res.json(tree);
   });
 

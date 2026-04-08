@@ -26,7 +26,7 @@ describe('searchWithFallback — filename mode', () => {
   });
 
   it('finds files matching the query by name', async () => {
-    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'meeting', 'filename');
+    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'meeting', 'filename', false);
     const paths = results.map((r) => r.filePath);
     expect(paths).toContain('meeting-notes.md');
     expect(paths).toContain(path.join('sub', 'deep-meeting.md'));
@@ -34,17 +34,24 @@ describe('searchWithFallback — filename mode', () => {
   });
 
   it('returns empty array when no files match', async () => {
-    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'xyzzy', 'filename');
+    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'xyzzy', 'filename', false);
     expect(results).toHaveLength(0);
   });
 
-  it('is case-insensitive', async () => {
-    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'MEETING', 'filename');
+  it('is case-insensitive by default', async () => {
+    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'MEETING', 'filename', false);
     expect(results.length).toBeGreaterThan(0);
   });
 
+  it('honours the case-sensitive flag', async () => {
+    const sensitive = await searchWithFallback(tmpDir, PROJECT_ID, 'MEETING', 'filename', true);
+    expect(sensitive).toHaveLength(0);
+    const ok = await searchWithFallback(tmpDir, PROJECT_ID, 'meeting', 'filename', true);
+    expect(ok.length).toBeGreaterThan(0);
+  });
+
   it('never returns non-.md files', async () => {
-    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'README', 'filename');
+    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'README', 'filename', false);
     // README.txt exists but should not appear
     expect(results.find((r) => r.filePath.endsWith('.txt'))).toBeUndefined();
   });
@@ -74,7 +81,7 @@ describe('searchWithFallback — content mode', () => {
   });
 
   it('finds matching lines in files', async () => {
-    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'KEYWORD', 'content');
+    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'KEYWORD', 'content', false);
     const matchingFiles = new Set(results.map((r) => r.filePath));
     expect(matchingFiles.has('alpha.md')).toBe(true);
     expect(matchingFiles.has('beta.md')).toBe(false);
@@ -82,13 +89,13 @@ describe('searchWithFallback — content mode', () => {
   });
 
   it('returns correct 1-based line numbers', async () => {
-    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'KEYWORD', 'content');
+    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'KEYWORD', 'content', false);
     const alphaResult = results.find((r) => r.filePath === 'alpha.md');
     expect(alphaResult?.line).toBe(2); // "this has KEYWORD here" is line 2
   });
 
   it('includes snippet with context lines', async () => {
-    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'KEYWORD', 'content');
+    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'KEYWORD', 'content', false);
     const alphaResult = results.find((r) => r.filePath === 'alpha.md');
     // Snippet should include the matching line and ±1 context line
     expect(alphaResult?.snippet).toContain('line 1'); // line before
@@ -97,13 +104,21 @@ describe('searchWithFallback — content mode', () => {
   });
 
   it('returns multiple results for a file with multiple matches', async () => {
-    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'KEYWORD', 'content');
+    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'KEYWORD', 'content', false);
     const gammaResults = results.filter((r) => r.filePath === 'gamma.md');
     expect(gammaResults).toHaveLength(2);
   });
 
-  it('is case-insensitive', async () => {
-    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'keyword', 'content');
+  it('is case-insensitive by default', async () => {
+    const results = await searchWithFallback(tmpDir, PROJECT_ID, 'keyword', 'content', false);
     expect(results.length).toBeGreaterThan(0);
+  });
+
+  it('honours the case-sensitive flag', async () => {
+    // Lowercase 'keyword' should not match the uppercase 'KEYWORD' lines
+    const sensitive = await searchWithFallback(tmpDir, PROJECT_ID, 'keyword', 'content', true);
+    expect(sensitive).toHaveLength(0);
+    const ok = await searchWithFallback(tmpDir, PROJECT_ID, 'KEYWORD', 'content', true);
+    expect(ok.length).toBeGreaterThan(0);
   });
 });

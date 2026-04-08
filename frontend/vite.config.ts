@@ -34,5 +34,18 @@ export default defineConfig({
   build: {
     outDir: '../dist/client',
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Heavy libraries that deserve their own chunk so the main
+          // entry stays lean. Mermaid is lazy-loaded via dynamic import
+          // and ends up in its own auto-named chunk regardless — listing
+          // it here is not needed.
+          react: ['react', 'react-dom'],
+          markdown: ['react-markdown', 'remark-gfm'],
+          syntax: ['react-syntax-highlighter'],
+        },
+      },
+    },
   },
 });

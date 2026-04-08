@@ -11,6 +11,8 @@ import type { NotebookConfig, ProjectConfig } from '../types/index.js';
 const ProjectSchema = z.object({
   name: z.string().min(1, 'Project name must not be empty'),
   path: z.string().min(1, 'Project path must not be empty'),
+  include: z.array(z.string().min(1)).optional(),
+  exclude: z.array(z.string().min(1)).optional(),
 });
 
 const ConfigSchema = z.object({
@@ -86,6 +88,8 @@ export async function loadConfig(explicitPath?: string): Promise<NotebookConfig>
     id: String(i),
     name: p.name,
     path: expandTilde(p.path),
+    include: p.include,
+    exclude: p.exclude,
   }));
 
   return {

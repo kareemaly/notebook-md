@@ -20,6 +20,12 @@
   color: var(--foreground);
 }
 
+/* The first visible element should sit flush with the container top
+   rather than inheriting the large heading top-margin. */
+.markdown-body > :first-child {
+  margin-top: 0;
+}
+
 .markdown-body h1 { font-size: 1.875rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
 .markdown-body h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.2em; }
 .markdown-body h3 { font-size: 1.25rem; }
@@ -42,14 +48,33 @@
   opacity: 0.8;
 }
 
-.markdown-body ul,
-.markdown-body ol {
+/* Tailwind v4 preflight resets list-style on ul/ol — restore markers. */
+.markdown-body ul {
+  list-style: disc outside;
   padding-left: 1.5em;
   margin-bottom: 1em;
 }
 
+.markdown-body ol {
+  list-style: decimal outside;
+  padding-left: 1.5em;
+  margin-bottom: 1em;
+}
+
+.markdown-body ul ul {
+  list-style: circle outside;
+}
+
+.markdown-body ul ul ul {
+  list-style: square outside;
+}
+
 .markdown-body li {
   margin-bottom: 0.25em;
+}
+
+.markdown-body li::marker {
+  color: var(--muted-foreground);
 }
 
 .markdown-body li > ul,
@@ -92,7 +117,7 @@
 }
 
 .markdown-body tr:nth-child(even) td {
-  background: var(--muted) / 0.4;
+  background: color-mix(in srgb, var(--muted) 40%, transparent);
 }
 
 .markdown-body code:not(pre code) {
@@ -126,4 +151,16 @@
 /* GFM strikethrough */
 .markdown-body del {
   color: var(--muted-foreground);
+}
+
+/* Search-query highlight injected by makeHighlightPlugin in
+   MarkdownRenderer. Colour tokens live in globals.css so light/dark
+   themes can override them alongside the other design tokens. */
+.markdown-body mark.md-hl {
+  background-color: var(--highlight);
+  color: inherit;
+  padding: 0.05em 0.15em;
+  border-radius: 0.2em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }

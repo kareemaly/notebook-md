@@ -6,6 +6,7 @@ export function useSearch(
   projectId: string | null,
   query: string,
   mode: SearchMode,
+  caseSensitive: boolean,
 ) {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -27,7 +28,7 @@ export function useSearch(
     timerRef.current = setTimeout(() => {
       const ctrl = new AbortController();
       abortRef.current = ctrl;
-      fetchSearch(projectId, query, mode, ctrl.signal)
+      fetchSearch(projectId, query, mode, caseSensitive, ctrl.signal)
         .then((data) => {
           setResults(data);
           setError(null);
@@ -45,7 +46,7 @@ export function useSearch(
       if (timerRef.current) clearTimeout(timerRef.current);
       if (abortRef.current) abortRef.current.abort();
     };
-  }, [projectId, query, mode]);
+  }, [projectId, query, mode, caseSensitive]);
 
   return { results, loading, error };
 }
