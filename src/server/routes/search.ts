@@ -2,14 +2,14 @@ import type { Router } from 'express';
 import { Router as createRouter } from 'express';
 import { createPathFilter } from '../../projectFilter.js';
 import { search } from '../../search/index.js';
-import type { NotebookConfig } from '../../types/index.js';
+import type { ConfigRef } from '../../types/index.js';
 
-export function searchRouter(config: NotebookConfig): Router {
+export function searchRouter(configRef: ConfigRef): Router {
   const router = createRouter();
 
   // GET /api/projects/:id/search?q=...&mode=filename|content
   router.get('/:id/search', async (req, res) => {
-    const project = config.projects.find((p) => p.id === req.params.id);
+    const project = configRef.current.projects.find((p) => p.id === req.params.id);
     if (!project) {
       res.status(404).json({ error: 'Project not found' });
       return;

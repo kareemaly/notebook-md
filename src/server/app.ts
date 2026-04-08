@@ -1,24 +1,24 @@
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import express from 'express';
-import type { NotebookConfig } from '../types/index.js';
+import type { ConfigRef } from '../types/index.js';
 import { fileRouter } from './routes/file.js';
 import { projectsRouter } from './routes/projects.js';
 import { searchRouter } from './routes/search.js';
 import { treeRouter } from './routes/tree.js';
 
-export function createApp(config: NotebookConfig): express.Application {
+export function createApp(configRef: ConfigRef): express.Application {
   const app = express();
 
   app.use(express.json());
 
   // Project list
-  app.use('/api/projects', projectsRouter(config));
+  app.use('/api/projects', projectsRouter(configRef));
 
   // Per-project routes — all share the /:id prefix
-  app.use('/api/projects', treeRouter(config));
-  app.use('/api/projects', fileRouter(config));
-  app.use('/api/projects', searchRouter(config));
+  app.use('/api/projects', treeRouter(configRef));
+  app.use('/api/projects', fileRouter(configRef));
+  app.use('/api/projects', searchRouter(configRef));
 
   // Static SPA — served after all API routes so /api/* is never shadowed.
   // import.meta.dirname is not available in Node 18, so we use fileURLToPath.

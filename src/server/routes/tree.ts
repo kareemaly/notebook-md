@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createPathFilter, type PathFilter } from '../../projectFilter.js';
 import { isSupportedFile } from '../../supportedFormats.js';
-import type { FileNode, NotebookConfig } from '../../types/index.js';
+import type { ConfigRef, FileNode } from '../../types/index.js';
 
 const IGNORED_DIRS = new Set([
   'node_modules',
@@ -66,12 +66,12 @@ export function buildFileTree(
   return [...dirs, ...files];
 }
 
-export function treeRouter(config: NotebookConfig): Router {
+export function treeRouter(configRef: ConfigRef): Router {
   const router = createRouter();
 
   // GET /api/projects/:id/tree
   router.get('/:id/tree', (req, res) => {
-    const project = config.projects.find((p) => p.id === req.params.id);
+    const project = configRef.current.projects.find((p) => p.id === req.params.id);
     if (!project) {
       res.status(404).json({ error: 'Project not found' });
       return;

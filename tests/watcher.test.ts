@@ -35,7 +35,7 @@ describe('WatcherManager debounce', () => {
     vi.useFakeTimers();
     // Reset emitter listeners between tests
     fakeWatcherEmitter.removeAllListeners();
-    manager = new WatcherManager(MOCK_CONFIG);
+    manager = new WatcherManager({ current: MOCK_CONFIG });
   });
 
   afterEach(() => {

@@ -42,7 +42,7 @@ describe('loadConfig', () => {
   // -------------------------------------------------------------------------
   it('returns defaults when no config file exists', async () => {
     mockNoConfigFile();
-    const cfg = await loadConfig();
+    const { config: cfg } = await loadConfig();
     expect(cfg.port).toBe(9001);
     expect(cfg.projects).toEqual([]);
     expect(cfg.watcher.usePolling).toBe(false);
@@ -53,7 +53,7 @@ describe('loadConfig', () => {
     const cwdConfig = path.resolve(process.cwd(), 'notebook.config.json');
     mockConfigFile(cwdConfig, { port: 4242, projects: [] });
 
-    const cfg = await loadConfig();
+    const { config: cfg } = await loadConfig();
     expect(cfg.port).toBe(4242);
   });
 
@@ -66,7 +66,7 @@ describe('loadConfig', () => {
       throw new Error(`ENOENT: ${String(p)}`);
     });
 
-    const cfg = await loadConfig();
+    const { config: cfg } = await loadConfig();
     expect(cfg.port).toBe(7777);
   });
 
@@ -79,7 +79,7 @@ describe('loadConfig', () => {
       throw new Error(`ENOENT: ${String(p)}`);
     });
 
-    const cfg = await loadConfig(explicitPath);
+    const { config: cfg } = await loadConfig(explicitPath);
     expect(cfg.port).toBe(1234);
   });
 
@@ -96,7 +96,7 @@ describe('loadConfig', () => {
       projects: [{ name: 'Notes', path: '~/notes' }],
     });
 
-    const cfg = await loadConfig();
+    const { config: cfg } = await loadConfig();
     expect(cfg.projects[0].path).toBe(path.join(os.homedir(), 'notes'));
   });
 
@@ -110,7 +110,7 @@ describe('loadConfig', () => {
       ],
     });
 
-    const cfg = await loadConfig();
+    const { config: cfg } = await loadConfig();
     expect(cfg.projects[0].id).toBe('0');
     expect(cfg.projects[1].id).toBe('1');
   });
@@ -130,7 +130,7 @@ describe('loadConfig', () => {
       projects: [{ name: 'Docs', path: '/docs' }],
     });
 
-    const cfg = await loadConfig();
+    const { config: cfg } = await loadConfig();
     expect(cfg.port).toBe(9001);
     expect(cfg.watcher.usePolling).toBe(false);
     expect(cfg.projects).toHaveLength(1);

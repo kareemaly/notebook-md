@@ -29,7 +29,7 @@ const ConfigSchema = z.object({
 // Tilde expansion
 // ---------------------------------------------------------------------------
 
-function expandTilde(p: string): string {
+export function expandTilde(p: string): string {
   if (p.startsWith('~/') || p === '~') {
     return path.join(os.homedir(), p.slice(1));
   }
@@ -40,9 +40,11 @@ function expandTilde(p: string): string {
 // Discovery
 // ---------------------------------------------------------------------------
 
+export const XDG_CONFIG_PATH = path.join(os.homedir(), '.config', 'notebook', 'config.json');
+
 const DISCOVERY_PATHS = [
   path.resolve(process.cwd(), 'notebook.config.json'),
-  path.join(os.homedir(), '.config', 'notebook', 'config.json'),
+  XDG_CONFIG_PATH,
 ];
 
 function findConfigFile(): string | null {
@@ -59,22 +61,38 @@ function readConfigFile(filePath: string): unknown {
   return JSON.parse(raw);
 }
 
+export function readRawConfig(filePath: string): unknown {
+  return readConfigFile(filePath);
+}
+
+export function writeRawConfig(filePath: string, raw: unknown): void {
+  fs.writeFileSync(filePath, JSON.stringify(raw, null, 2) + '\n', 'utf8');
+}
+
 // ---------------------------------------------------------------------------
 // Main export
 // ---------------------------------------------------------------------------
 
-export async function loadConfig(explicitPath?: string): Promise<NotebookConfig> {
+export interface LoadConfigResult {
+  config: NotebookConfig;
+  configFilePath: string | null;
+}
+
+export async function loadConfig(explicitPath?: string): Promise<LoadConfigResult> {
   let raw: unknown = {};
+  let resolvedConfigPath: string | null = null;
 
   if (explicitPath) {
     const resolved = path.resolve(process.cwd(), explicitPath);
     if (!fs.existsSync(resolved)) {
       throw new Error(`Config file not found: ${resolved}`);
     }
+    resolvedConfigPath = resolved;
     raw = readConfigFile(resolved);
   } else {
     const found = findConfigFile();
     if (found) {
+      resolvedConfigPath = found;
       raw = readConfigFile(found);
     }
     // If no file found, raw stays {} and defaults kick in
@@ -93,11 +111,14 @@ export async function loadConfig(explicitPath?: string): Promise<NotebookConfig>
   }));
 
   return {
-    port: parsed.port,
-    projects,
-    watcher: {
-      usePolling: parsed.watcher.usePolling,
+    config: {
+      port: parsed.port,
+      projects,
+      watcher: {
+        usePolling: parsed.watcher.usePolling,
+      },
     },
+    configFilePath: resolvedConfigPath,
   };
 }
 

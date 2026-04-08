@@ -46,6 +46,11 @@ export interface SearchResult {
   snippet?: string; // content mode only — matching line ± 1 line of context
 }
 
+export interface ConfigRef {
+  current: NotebookConfig;
+}
+
 export type WsMessage =
   | { type: 'reload'; path: string; event: 'change' | 'add' | 'unlink' }
-  | { type: 'ping' };
+  | { type: 'ping' }
+  | { type: 'config-reload'; projects: { id: string; name: string }[] };

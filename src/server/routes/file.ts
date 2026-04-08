@@ -3,15 +3,15 @@ import { Router as createRouter } from 'express';
 import matter from 'gray-matter';
 import fs from 'node:fs';
 import { createPathFilter } from '../../projectFilter.js';
-import type { NotebookConfig } from '../../types/index.js';
+import type { ConfigRef } from '../../types/index.js';
 import { resolveSafePath } from '../pathUtils.js';
 
-export function fileRouter(config: NotebookConfig): Router {
+export function fileRouter(configRef: ConfigRef): Router {
   const router = createRouter();
 
   // GET /api/projects/:id/file?path=...
   router.get('/:id/file', (req, res) => {
-    const project = config.projects.find((p) => p.id === req.params.id);
+    const project = configRef.current.projects.find((p) => p.id === req.params.id);
     if (!project) {
       res.status(404).json({ error: 'Project not found' });
       return;

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createPathFilter, type PathFilter } from '../projectFilter.js';
 import { isSupportedFile } from '../supportedFormats.js';
-import type { NotebookConfig, WsMessage } from '../types/index.js';
+import type { ConfigRef, WsMessage } from '../types/index.js';
 
 const IGNORED_DIRS = [
   /(^|[/\\])\../, // dotfiles / dotdirs
@@ -49,19 +49,18 @@ export class WatcherManager {
   private watcher: FSWatcher | null = null;
   private debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private activeProjectId: string | null = null;
-  private usePolling: boolean;
-  private projects: NotebookConfig['projects'];
 
-  constructor(private config: NotebookConfig) {
-    this.usePolling = config.watcher.usePolling;
-    this.projects = config.projects;
+  constructor(private configRef: ConfigRef) {}
+
+  getActiveProjectId(): string | null {
+    return this.activeProjectId;
   }
 
   activate(projectId: string, onEvent: (msg: WsMessage) => void): void {
     // Tear down existing watcher before switching projects
     this.deactivate();
 
-    const project = this.projects.find((p) => p.id === projectId);
+    const project = this.configRef.current.projects.find((p) => p.id === projectId);
     if (!project) {
       console.warn(`[notebook] watcher: unknown project id "${projectId}"`);
       return;
@@ -79,7 +78,7 @@ export class WatcherManager {
     filter: PathFilter,
     forcePolling = false,
   ): void {
-    const usePolling = forcePolling || this.usePolling;
+    const usePolling = forcePolling || this.configRef.current.watcher.usePolling;
 
     this.watcher = chokidar.watch(projectRoot, {
       ignored: makeIgnored(IGNORED_DIRS, projectRoot, filter),

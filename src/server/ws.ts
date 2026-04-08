@@ -1,6 +1,8 @@
+import chokidar from 'chokidar';
 import type http from 'node:http';
 import { WebSocketServer, WebSocket } from 'ws';
-import type { NotebookConfig, WsMessage } from '../types/index.js';
+import { loadConfig } from '../config/index.js';
+import type { ConfigRef, NotebookConfig, WsMessage } from '../types/index.js';
 import { WatcherManager } from '../watcher/index.js';
 
 interface ActivateMessage {
@@ -17,9 +19,14 @@ function isActivateMessage(data: unknown): data is ActivateMessage {
   );
 }
 
-export function attachWebSocket(server: http.Server, config: NotebookConfig): WebSocketServer {
+export function attachWebSocket(
+  server: http.Server,
+  configRef: ConfigRef,
+  configFilePath: string | null,
+  onConfigReload: (newConfig: NotebookConfig) => void,
+): { wss: WebSocketServer; watcherManager: WatcherManager } {
   const wss = new WebSocketServer({ server, path: '/ws' });
-  const watcherManager = new WatcherManager(config);
+  const watcherManager = new WatcherManager(configRef);
 
   function broadcast(msg: WsMessage): void {
     const payload = JSON.stringify(msg);
@@ -56,9 +63,47 @@ export function attachWebSocket(server: http.Server, config: NotebookConfig): We
     });
   });
 
+  // Config file hot-reload (separate from markdown watcher)
+  if (configFilePath) {
+    const cfgWatcher = chokidar.watch(configFilePath, {
+      persistent: true,
+      ignoreInitial: true,
+      awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 50 },
+    });
+
+    cfgWatcher.on('change', async () => {
+      let newConfig: NotebookConfig;
+      try {
+        const result = await loadConfig(configFilePath);
+        newConfig = result.config;
+      } catch (err) {
+        console.error('[notebook] config reload failed — keeping previous config:', err);
+        return;
+      }
+
+      if (newConfig.port !== configRef.current.port) {
+        console.warn(
+          '[notebook] port changed in config — restart required for port change to take effect',
+        );
+        newConfig = { ...newConfig, port: configRef.current.port };
+      }
+
+      onConfigReload(newConfig);
+      broadcast({
+        type: 'config-reload',
+        projects: newConfig.projects.map((p) => ({ id: p.id, name: p.name })),
+      });
+    });
+    // Ignore 'unlink' — don't crash if config file is deleted
+
+    wss.on('close', () => {
+      cfgWatcher.close().catch(() => {});
+    });
+  }
+
   wss.on('close', () => {
     watcherManager.destroy();
   });
 
-  return wss;
+  return { wss, watcherManager };
 }
