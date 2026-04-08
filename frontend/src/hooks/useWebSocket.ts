@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { WSReloadMessage, WSStatus } from '@/types';
+import type { WSConfigReloadMessage, WSReloadMessage, WSStatus } from '@/types';
 
 const BACKOFF = [1000, 2000, 4000, 8000, 16000, 30000];
 
@@ -10,6 +10,7 @@ function nextDelay(attempt: number) {
 export function useWebSocket(
   projectId: string | null,
   onReload: (msg: WSReloadMessage) => void,
+  onConfigReload?: (msg: WSConfigReloadMessage) => void,
 ) {
   const [status, setStatus] = useState<WSStatus>('connecting');
   const wsRef = useRef<WebSocket | null>(null);
@@ -18,6 +19,8 @@ export function useWebSocket(
   const attemptRef = useRef(0);
   const onReloadRef = useRef(onReload);
   onReloadRef.current = onReload;
+  const onConfigReloadRef = useRef(onConfigReload);
+  onConfigReloadRef.current = onConfigReload;
 
   useEffect(() => {
     destroyedRef.current = false;
@@ -46,7 +49,9 @@ export function useWebSocket(
         try {
           const msg = JSON.parse(e.data as string) as { type: string };
           if (msg.type === 'reload') {
-            onReloadRef.current(msg as WSReloadMessage);
+            onReloadRef.current(msg as unknown as WSReloadMessage);
+          } else if (msg.type === 'config-reload') {
+            onConfigReloadRef.current?.(msg as unknown as WSConfigReloadMessage);
           }
         } catch {
           // ignore malformed messages

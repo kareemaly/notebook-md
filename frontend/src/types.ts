@@ -32,3 +32,8 @@ export interface WSReloadMessage {
   path: string;
   event: 'change' | 'add' | 'unlink';
 }
+
+export interface WSConfigReloadMessage {
+  type: 'config-reload';
+  projects: Project[];
+}

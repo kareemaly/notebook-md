@@ -1,5 +1,10 @@
 # notebook-md
 
+[![npm version](https://img.shields.io/npm/v/notebook-md.svg)](https://www.npmjs.com/package/notebook-md)
+[![CI](https://github.com/kareemaly/notebook-md/actions/workflows/ci.yml/badge.svg)](https://github.com/kareemaly/notebook-md/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Node.js](https://img.shields.io/node/v/notebook-md.svg)](https://nodejs.org/)
+
 A read-only, multi-project markdown viewer with live reload, Mermaid diagrams, frontmatter support, and fast file/content search.
 
 ## Quickstart

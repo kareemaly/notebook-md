@@ -9,7 +9,7 @@ import { useSearch } from '@/hooks/useSearch';
 import { useSidebarWidth } from '@/hooks/useSidebarWidth';
 import { useTheme } from '@/hooks/useTheme';
 import { useWebSocket } from '@/hooks/useWebSocket';
-import type { SearchMode, WSReloadMessage } from '@/types';
+import type { SearchMode, WSConfigReloadMessage, WSReloadMessage } from '@/types';
 import { DocumentView } from './components/DocumentView';
 import { FileExplorer } from './components/FileExplorer';
 import { ProjectSwitcher } from './components/ProjectSwitcher';
@@ -44,7 +44,7 @@ export function App() {
   const { resolvedTheme, toggle: toggleTheme } = useTheme();
   const { width: sidebarWidth, dragging: resizing, handleProps: resizeHandleProps } =
     useSidebarWidth();
-  const { projects, loading: projectsLoading } = useProjects();
+  const { projects, loading: projectsLoading, refetch: refetchProjects } = useProjects();
   const { tree } = useFileTree(activeProjectId);
   const { fileData, loading: fileLoading, error: fileError, refetch } = useFile(
     activeProjectId,
@@ -68,7 +68,25 @@ export function App() {
     [activeFilePath, refetch],
   );
 
-  const { status: wsStatus } = useWebSocket(activeProjectId, handleReload);
+  // Backend hot-reloads its config when notebook.config.json changes and
+  // pushes a `config-reload` message with the new project list. Refetch
+  // /api/projects so the switcher reflects renames/additions/removals,
+  // and if the active project has been removed fall back to the first
+  // available one (or empty state when the config is now empty).
+  const handleConfigReload = useCallback(
+    async (msg: WSConfigReloadMessage) => {
+      const next = (await refetchProjects()) ?? msg.projects;
+      const stillExists =
+        activeProjectId !== null && next.some((p) => p.id === activeProjectId);
+      if (!stillExists) {
+        setActiveProjectId(next.length > 0 ? next[0].id : null);
+        setActiveFilePath(null);
+      }
+    },
+    [activeProjectId, refetchProjects],
+  );
+
+  const { status: wsStatus } = useWebSocket(activeProjectId, handleReload, handleConfigReload);
 
   const selectProject = useCallback((id: string) => {
     setActiveProjectId(id);
