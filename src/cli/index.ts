@@ -86,9 +86,9 @@ async function runEphemeral(rawPath: string): Promise<void> {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function wrapErrors<T extends (...args: any[]) => Promise<void>>(fn: T): T {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const wrapped = async (...args: any[]) => {
+  const wrapped = async function (this: unknown, ...args: any[]) {
     try {
-      await fn(...args);
+      await fn.apply(this, args);
     } catch (err) {
       if (err instanceof ZodError) {
         console.error('Config validation failed:');

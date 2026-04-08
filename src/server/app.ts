@@ -23,7 +23,7 @@ export function createApp(configRef: ConfigRef): express.Application {
   // Static SPA — served after all API routes so /api/* is never shadowed.
   // import.meta.dirname is not available in Node 18, so we use fileURLToPath.
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const clientDist = path.join(__dirname, '..', '..', 'client');
+  const clientDist = path.join(__dirname, '..', 'client');
 
   // Hashed assets get long-lived cache headers
   app.use(

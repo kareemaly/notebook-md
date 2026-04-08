@@ -23,5 +23,5 @@ jobs:
       - run: cd frontend && npm install
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm run test:run
       - run: npm run build
+      - run: npm run test:run

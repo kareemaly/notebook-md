@@ -27,6 +27,7 @@
     "dev:client": "cd frontend && vite",
     "dev": "concurrently \"npm:dev:server\" \"npm:dev:client\"",
     "build": "tsc && cd frontend && vite build",
+    "prepublishOnly": "npm run build",
     "start": "node dist/cli/index.js",
     "test": "vitest",
     "test:run": "vitest run",
