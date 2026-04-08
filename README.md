@@ -7,6 +7,8 @@
 
 A read-only, multi-project markdown viewer with live reload, Mermaid diagrams, frontmatter support, and fast file/content search.
 
+![notebook-md screenshot](docs/screenshots/hero.png)
+
 ## Quickstart
 
 Try it in 5 seconds — no config file needed:
