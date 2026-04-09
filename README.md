@@ -44,20 +44,15 @@ notebook                                  # alias for `notebook serve`
 
 ## Features
 
-- **Multi-project**: configure any number of project roots and switch between them in the UI.
-- **Per-project include / exclude**: restrict a project to specific top-level folders without moving files.
-- **Markdown rendering** with GFM, syntax-highlighted code blocks, and Mermaid diagrams (both lazy-loaded so the initial bundle stays small).
-- **YAML frontmatter** parsed and shown as a collapsible metadata panel.
-- **File explorer** with keyboard navigation (↑/↓/←/→, Enter, Home/End) and auto-reveal of the active file on page load.
-- **Search** — filename and full-text, powered by ripgrep when available with a pure-JS fallback. Toggleable case sensitivity. Matches in the opened document body are highlighted live.
-- **URL state**: the active project and file are tracked in the query string, so a refresh or bookmark restores the exact view. Back/forward navigates between documents.
-- **Dark mode** with a sun/moon toggle; follows `prefers-color-scheme` by default.
-- **Resizable sidebar** (drag the right edge, double-click to reset; Arrow keys when focused).
-- **Copy to clipboard** for raw markdown and individual code blocks.
-- **Live reload** via a filesystem watcher — edits outside the app refresh the open document.
-- **Config hot-reload** — edit the config file while the server is running; the project list updates without a restart.
-- **Cross-platform**: macOS, Linux, Windows.
-- **Read-only by design** — notebook never modifies project files.
+- **Multi-project** — switch between configured project roots in the UI, or pass a path for an ephemeral one-off session.
+- **Markdown rendering** — GFM, syntax-highlighted code, and Mermaid diagrams (lazy-loaded).
+- **Embedded images & assets** — relative links in markdown resolve against the current file, so PNG/JPG/SVG/PDF/etc. render inline.
+- **YAML frontmatter** parsed into a collapsible metadata panel.
+- **Fast search** — filename and full-text, powered by ripgrep with a pure-JS fallback. Live highlighting in the open document.
+- **File explorer** with full keyboard navigation, auto-reveal of the active file, and `.gitignore`-aware scanning.
+- **Live reload** — filesystem watcher updates the open document on external edits; config hot-reload updates the project list without a restart.
+
+Plus: dark mode, resizable sidebar, URL-addressable state (refresh/bookmark restores the exact view), copy-to-clipboard for code blocks, cross-platform (macOS / Linux / Windows). Read-only by design — notebook never writes to your files.
 
 ## Keyboard shortcuts
 
