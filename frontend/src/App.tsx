@@ -45,7 +45,8 @@ export function App() {
   const { width: sidebarWidth, dragging: resizing, handleProps: resizeHandleProps } =
     useSidebarWidth();
   const { projects, loading: projectsLoading, refetch: refetchProjects } = useProjects();
-  const { tree } = useFileTree(activeProjectId);
+  const { tree, refetch: refetchTree } = useFileTree(activeProjectId);
+  const treeRefetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { fileData, loading: fileLoading, error: fileError, refetch } = useFile(
     activeProjectId,
     activeFilePath,
@@ -64,8 +65,12 @@ export function App() {
       } else if (msg.path === activeFilePath) {
         refetch();
       }
+      if (msg.event === 'add' || msg.event === 'unlink') {
+        if (treeRefetchTimer.current) clearTimeout(treeRefetchTimer.current);
+        treeRefetchTimer.current = setTimeout(refetchTree, 150);
+      }
     },
-    [activeFilePath, refetch],
+    [activeFilePath, refetch, refetchTree],
   );
 
   // Backend hot-reloads its config when notebook.config.json changes and
