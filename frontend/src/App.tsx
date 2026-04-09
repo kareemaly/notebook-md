@@ -349,6 +349,7 @@ export function App() {
           fileData={fileData}
           loading={fileLoading}
           error={fileError}
+          projectId={activeProjectId}
           filePath={activeFilePath}
           // Only highlight the document body when the user is searching
           // content — a filename query has no meaningful relationship to

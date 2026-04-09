@@ -57,3 +57,37 @@ export function resolveSafePath(
 
   return resolved;
 }
+
+export const ASSET_EXTENSIONS = new Set([
+  '.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.avif', '.pdf',
+]);
+
+/**
+ * Like resolveSafePath but for binary assets. Uses ASSET_EXTENSIONS allowlist
+ * instead of isSupportedFile. Does NOT apply the project include/exclude filter
+ * (assets can live anywhere inside the project root).
+ */
+export function resolveSafeAssetPath(
+  projectRoot: string,
+  rawPath: string,
+): string | null {
+  if (!rawPath) return null;
+  if (rawPath.includes('\0')) return null;
+
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(rawPath);
+  } catch {
+    return null;
+  }
+  if (decoded.includes('\0')) return null;
+
+  const resolved = path.resolve(projectRoot, decoded);
+  const rootWithSep = projectRoot.endsWith(path.sep) ? projectRoot : projectRoot + path.sep;
+  if (resolved !== projectRoot && !resolved.startsWith(rootWithSep)) return null;
+
+  const ext = path.extname(resolved).toLowerCase();
+  if (!ASSET_EXTENSIONS.has(ext)) return null;
+
+  return resolved;
+}

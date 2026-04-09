@@ -11,6 +11,7 @@ interface Props {
   fileData: FileResponse | null;
   loading: boolean;
   error: string | null;
+  projectId: string | null;
   filePath: string | null;
   highlight?: string;
   highlightCaseSensitive?: boolean;
@@ -20,6 +21,7 @@ export function DocumentView({
   fileData,
   loading,
   error,
+  projectId,
   filePath,
   highlight,
   highlightCaseSensitive,
@@ -64,6 +66,8 @@ export function DocumentView({
             markdown={fileData.body}
             highlight={highlight}
             highlightCaseSensitive={highlightCaseSensitive}
+            projectId={projectId ?? undefined}
+            filePath={filePath ?? undefined}
           />
         </div>
       </ScrollArea>

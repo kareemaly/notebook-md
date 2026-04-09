@@ -104,16 +104,41 @@ function MermaidFallback({ value }: { value: string }) {
   );
 }
 
+const ASSET_EXTS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.avif', '.pdf']);
+
+function resolveAssetSrc(projectId: string, filePath: string, src: string): string {
+  if (/^(https?:|data:|\/\/)/i.test(src)) return src;
+  try {
+    const base = new URL(`http://x/${filePath}`);
+    const resolved = new URL(src, base);
+    const assetPath = resolved.pathname.slice(1);
+    return `/api/projects/${encodeURIComponent(projectId)}/asset?path=${encodeURIComponent(assetPath)}`;
+  } catch {
+    return src;
+  }
+}
+
+function isAssetHref(href: string): boolean {
+  const clean = href.split('?')[0].split('#')[0];
+  const dot = clean.lastIndexOf('.');
+  if (dot === -1) return false;
+  return ASSET_EXTS.has(clean.slice(dot).toLowerCase());
+}
+
 interface Props {
   markdown: string;
   highlight?: string;
   highlightCaseSensitive?: boolean;
+  projectId?: string;
+  filePath?: string;
 }
 
 export function MarkdownRenderer({
   markdown,
   highlight,
   highlightCaseSensitive = false,
+  projectId,
+  filePath,
 }: Props) {
   // Memoize so the plugin identity only changes when the query does —
   // otherwise react-markdown re-parses on every render.
@@ -161,6 +186,25 @@ export function MarkdownRenderer({
                 <CodeBlock language={lang} value={value} />
               </Suspense>
             );
+          },
+          img({ src, alt, ...props }) {
+            const resolvedSrc =
+              src && projectId && filePath
+                ? resolveAssetSrc(projectId, filePath, src)
+                : (src ?? '');
+            return <img src={resolvedSrc} alt={alt ?? ''} {...props} />;
+          },
+          a({ href, children, ...props }) {
+            if (
+              href &&
+              !(/^(https?:|data:|\/\/)/i.test(href)) &&
+              isAssetHref(href) &&
+              projectId &&
+              filePath
+            ) {
+              return <a href={resolveAssetSrc(projectId, filePath, href)} {...props}>{children}</a>;
+            }
+            return <a href={href} {...props}>{children}</a>;
           },
           // Wrap tables in a horizontally scrollable container
           table({ children }) {

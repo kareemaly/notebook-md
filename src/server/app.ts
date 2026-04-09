@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import express from 'express';
 import type { ConfigRef } from '../types/index.js';
+import { assetRouter } from './routes/asset.js';
 import { fileRouter } from './routes/file.js';
 import { projectsRouter } from './routes/projects.js';
 import { searchRouter } from './routes/search.js';
@@ -18,6 +19,7 @@ export function createApp(configRef: ConfigRef): express.Application {
   // Per-project routes — all share the /:id prefix
   app.use('/api/projects', treeRouter(configRef));
   app.use('/api/projects', fileRouter(configRef));
+  app.use('/api/projects', assetRouter(configRef));
   app.use('/api/projects', searchRouter(configRef));
 
   // Static SPA — served after all API routes so /api/* is never shadowed.
