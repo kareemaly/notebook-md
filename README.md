@@ -76,11 +76,10 @@ notebook                                  # alias for `notebook serve`
 Config discovery order:
 
 1. `--config <path>` if passed to `notebook serve`
-2. `./notebook.config.json` in the current working directory
-3. `~/.config/notebook/config.json`
-4. Built-in defaults (empty project list, port 9001)
+2. `~/.config/notebook/config.json`
+3. Built-in defaults (empty project list, port 9001)
 
-`notebook add` creates `~/.config/notebook/config.json` if no config file exists, or appends to whichever file would be loaded above.
+`notebook add` always writes to `~/.config/notebook/config.json` (creating it if needed), unless `--config` is passed.
 
 ### Example
 

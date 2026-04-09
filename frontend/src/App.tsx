@@ -73,7 +73,7 @@ export function App() {
     [activeFilePath, refetch, refetchTree],
   );
 
-  // Backend hot-reloads its config when notebook.config.json changes and
+  // Backend hot-reloads its config when the config file changes and
   // pushes a `config-reload` message with the new project list. Refetch
   // /api/projects so the switcher reflects renames/additions/removals,
   // and if the active project has been removed fall back to the first

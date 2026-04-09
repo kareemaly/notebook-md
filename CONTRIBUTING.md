@@ -15,13 +15,13 @@ npm run dev
 `npm run dev` boots the backend (`tsx watch`) and the Vite frontend
 concurrently. The viewer is served at <http://localhost:9001>.
 
-If you don't have a `notebook.config.json` yet, copy the example:
+To add a project to your local config, run:
 
 ```sh
-cp notebook.config.json.example notebook.config.json
+notebook add ~/path/to/your/notes
 ```
 
-…and point a project at a folder of markdown notes you have lying around.
+This writes to `~/.config/notebook/config.json` (creating it if needed).
 
 ## Project layout
 

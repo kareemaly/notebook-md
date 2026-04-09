@@ -42,18 +42,8 @@ export function expandTilde(p: string): string {
 
 export const XDG_CONFIG_PATH = path.join(os.homedir(), '.config', 'notebook', 'config.json');
 
-const DISCOVERY_PATHS = [
-  path.resolve(process.cwd(), 'notebook.config.json'),
-  XDG_CONFIG_PATH,
-];
-
 function findConfigFile(): string | null {
-  for (const candidate of DISCOVERY_PATHS) {
-    if (fs.existsSync(candidate)) {
-      return candidate;
-    }
-  }
-  return null;
+  return fs.existsSync(XDG_CONFIG_PATH) ? XDG_CONFIG_PATH : null;
 }
 
 function readConfigFile(filePath: string): unknown {

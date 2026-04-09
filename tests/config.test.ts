@@ -9,6 +9,8 @@ vi.mock('node:fs');
 
 const mockFs = vi.mocked(fs);
 
+const XDG_CONFIG = path.join(os.homedir(), '.config', 'notebook', 'config.json');
+
 // Helper: set up mockFs.existsSync and mockFs.readFileSync for a given config JSON.
 function mockConfigFile(filePath: string, content: unknown) {
   mockFs.existsSync.mockImplementation((p) => p === filePath);
@@ -49,25 +51,22 @@ describe('loadConfig', () => {
   });
 
   // -------------------------------------------------------------------------
-  it('discovers cwd/notebook.config.json before ~/.config path', async () => {
-    const cwdConfig = path.resolve(process.cwd(), 'notebook.config.json');
-    mockConfigFile(cwdConfig, { port: 4242, projects: [] });
-
-    const { config: cfg } = await loadConfig();
-    expect(cfg.port).toBe(4242);
-  });
-
-  // -------------------------------------------------------------------------
-  it('falls back to ~/.config/notebook/config.json when cwd file is absent', async () => {
-    const xdgConfig = path.join(os.homedir(), '.config', 'notebook', 'config.json');
-    mockFs.existsSync.mockImplementation((p) => p === xdgConfig);
-    mockFs.readFileSync.mockImplementation((p) => {
-      if (p === xdgConfig) return JSON.stringify({ port: 7777, projects: [] });
-      throw new Error(`ENOENT: ${String(p)}`);
-    });
+  it('loads ~/.config/notebook/config.json when present', async () => {
+    mockConfigFile(XDG_CONFIG, { port: 7777, projects: [] });
 
     const { config: cfg } = await loadConfig();
     expect(cfg.port).toBe(7777);
+  });
+
+  // -------------------------------------------------------------------------
+  it('does not pick up notebook.config.json from cwd', async () => {
+    const cwdConfig = path.resolve(process.cwd(), 'notebook.config.json');
+    mockConfigFile(cwdConfig, { port: 4242, projects: [] });
+
+    // cwd config should be ignored — no XDG file means defaults are used
+    const { config: cfg, configFilePath } = await loadConfig();
+    expect(cfg.port).toBe(9001);
+    expect(configFilePath).toBeNull();
   });
 
   // -------------------------------------------------------------------------
@@ -91,8 +90,7 @@ describe('loadConfig', () => {
 
   // -------------------------------------------------------------------------
   it('expands tilde in project paths', async () => {
-    const cwdConfig = path.resolve(process.cwd(), 'notebook.config.json');
-    mockConfigFile(cwdConfig, {
+    mockConfigFile(XDG_CONFIG, {
       projects: [{ name: 'Notes', path: '~/notes' }],
     });
 
@@ -102,8 +100,7 @@ describe('loadConfig', () => {
 
   // -------------------------------------------------------------------------
   it('assigns stable numeric string IDs to projects', async () => {
-    const cwdConfig = path.resolve(process.cwd(), 'notebook.config.json');
-    mockConfigFile(cwdConfig, {
+    mockConfigFile(XDG_CONFIG, {
       projects: [
         { name: 'A', path: '/a' },
         { name: 'B', path: '/b' },
@@ -117,16 +114,14 @@ describe('loadConfig', () => {
 
   // -------------------------------------------------------------------------
   it('throws ZodError when config has invalid schema', async () => {
-    const cwdConfig = path.resolve(process.cwd(), 'notebook.config.json');
-    mockConfigFile(cwdConfig, { port: 'not-a-number' });
+    mockConfigFile(XDG_CONFIG, { port: 'not-a-number' });
 
     await expect(loadConfig()).rejects.toThrow(ZodError);
   });
 
   // -------------------------------------------------------------------------
   it('accepts partial config and fills in defaults', async () => {
-    const cwdConfig = path.resolve(process.cwd(), 'notebook.config.json');
-    mockConfigFile(cwdConfig, {
+    mockConfigFile(XDG_CONFIG, {
       projects: [{ name: 'Docs', path: '/docs' }],
     });
 

@@ -10,8 +10,7 @@ import { readRawConfig, writeRawConfig, XDG_CONFIG_PATH } from '../src/config/in
 
 /**
  * Minimal re-implementation of the add command's core logic, parameterised
- * so tests can inject temp paths without touching the real home directory or
- * the real cwd notebook.config.json.
+ * so tests can inject temp paths without touching the real home directory.
  */
 async function runAdd(
   rawPath: string,
