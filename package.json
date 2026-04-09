@@ -1,6 +1,6 @@
 {
   "name": "notebook-md",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Read-only multi-project markdown viewer",
   "license": "MIT",
   "repository": {
@@ -8,7 +8,12 @@
     "url": "git+ssh://git@github.com/kareemaly/notebook-md.git"
   },
   "homepage": "https://github.com/kareemaly/notebook-md",
-  "keywords": ["markdown", "viewer", "notes", "multi-project"],
+  "keywords": [
+    "markdown",
+    "viewer",
+    "notes",
+    "multi-project"
+  ],
   "author": "Kareem Elbahrawy",
   "type": "module",
   "engines": {
