@@ -18,6 +18,8 @@ export interface ProjectConfig {
 
 export interface WatcherConfig {
   usePolling: boolean;
+  /** Maximum number of directories to watch per project. Default: 2000. */
+  maxWatchedDirs?: number;
 }
 
 export interface NotebookConfig {
@@ -53,4 +55,5 @@ export interface ConfigRef {
 export type WsMessage =
   | { type: 'reload'; path: string; event: 'change' | 'add' | 'unlink' }
   | { type: 'ping' }
-  | { type: 'config-reload'; projects: { id: string; name: string }[] };
+  | { type: 'config-reload'; projects: { id: string; name: string }[] }
+  | { type: 'watcher-warning'; projectId: string; message: string };

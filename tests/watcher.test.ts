@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const fakeWatcherEmitter = new EventEmitter() as EventEmitter & {
   close: () => Promise<void>;
 };
-fakeWatcherEmitter.close = () => Promise.resolve();
+fakeWatcherEmitter.close = vi.fn(() => Promise.resolve());
 
 vi.mock('chokidar', () => ({
   default: {
@@ -20,6 +20,7 @@ vi.mock('chokidar', () => ({
 // Import after mocks are in place
 // ---------------------------------------------------------------------------
 
+import chokidar from 'chokidar';
 import { WatcherManager } from '../src/watcher/index.js';
 
 const MOCK_CONFIG = {
@@ -121,5 +122,98 @@ describe('WatcherManager debounce', () => {
   it('handles unknown project id gracefully without throwing', () => {
     const onEvent = vi.fn();
     expect(() => manager.activate('nonexistent', onEvent)).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Lifecycle regression tests — real timers (no fake timer interference with
+// microtask flushing, since these tests don't need debounce control)
+// ---------------------------------------------------------------------------
+
+describe('WatcherManager lifecycle', () => {
+  let manager: WatcherManager;
+  const watchMock = vi.mocked(chokidar.watch);
+
+  beforeEach(() => {
+    fakeWatcherEmitter.removeAllListeners();
+    vi.clearAllMocks();
+    // Fresh close mock each test
+    fakeWatcherEmitter.close = vi.fn(() => Promise.resolve());
+    manager = new WatcherManager({ current: MOCK_CONFIG });
+  });
+
+  afterEach(() => {
+    manager.destroy();
+    vi.clearAllMocks();
+  });
+
+  it('defers new watcher until previous watcher is fully closed (no fd leak)', async () => {
+    const onEvent = vi.fn();
+
+    // First activate starts synchronously (no prior watcher, closing=false).
+    manager.activate('0', onEvent);
+    expect(watchMock).toHaveBeenCalledTimes(1);
+
+    // Re-activate while the first watcher is live. This should:
+    //   1. Synchronously close the first watcher (setting closing=true)
+    //   2. Defer the new watcher start until close() resolves
+    manager.activate('0', onEvent);
+
+    // close() was called on the first watcher
+    expect(fakeWatcherEmitter.close).toHaveBeenCalledTimes(1);
+
+    // But the new watcher has NOT been created yet (close is still in-flight)
+    expect(watchMock).toHaveBeenCalledTimes(1);
+
+    // setTimeout(fn, 0) advances to the next event-loop task, guaranteeing
+    // all pending microtasks (the Promise chain close→catch→finally→then)
+    // have drained before we assert.
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+    // The deferred activation ran: exactly one new watcher was started.
+    expect(watchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('EMFILE error triggers teardown and watcher-warning, not a retry', () => {
+    const onEvent = vi.fn();
+    manager.activate('0', onEvent);
+
+    // Watcher is now active; simulate EMFILE
+    fakeWatcherEmitter.emit('error', Object.assign(new Error('EMFILE'), { code: 'EMFILE' }));
+
+    // close() should have been called (deactivate tears down)
+    expect(fakeWatcherEmitter.close).toHaveBeenCalledTimes(1);
+
+    // onEvent should have received a watcher-warning
+    expect(onEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'watcher-warning', projectId: '0' }),
+    );
+
+    // No second chokidar.watch() call — must NOT retry
+    expect(watchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('hard cap exceeded sends watcher-warning and does not start a watcher', () => {
+    const onEvent = vi.fn();
+    // maxWatchedDirs: 0 means even the project root (1 dir) exceeds the cap
+    const tinyCapConfig = {
+      ...MOCK_CONFIG,
+      watcher: { usePolling: false, maxWatchedDirs: 0 },
+    };
+    const cappedManager = new WatcherManager({ current: tinyCapConfig });
+
+    try {
+      cappedManager.activate('0', onEvent);
+
+      // chokidar.watch should never have been called
+      expect(watchMock).not.toHaveBeenCalled();
+
+      // A watcher-warning must have been emitted
+      expect(onEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'watcher-warning', projectId: '0' }),
+      );
+    } finally {
+      cappedManager.destroy();
+    }
   });
 });
