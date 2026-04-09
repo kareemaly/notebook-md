@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   XDG_CONFIG_PATH,
   ZodError,
@@ -217,6 +218,12 @@ function buildListCommand(): Command {
 }
 
 // ---------------------------------------------------------------------------
+// Package version (read at runtime so `npm version` bumps are reflected automatically)
+// ---------------------------------------------------------------------------
+
+const _pkgPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../package.json');
+const _pkg = JSON.parse(fs.readFileSync(_pkgPath, 'utf-8')) as { version: string };
+
 // Program
 // ---------------------------------------------------------------------------
 
@@ -225,7 +232,7 @@ const program = new Command();
 program
   .name('notebook')
   .description('Read-only multi-project markdown viewer')
-  .version('0.1.0')
+  .version(_pkg.version)
   .addCommand(buildServeCommand())
   .addCommand(buildAddCommand())
   .addCommand(buildRemoveCommand())
