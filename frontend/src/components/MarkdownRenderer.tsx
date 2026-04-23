@@ -1,5 +1,6 @@
 import { type ComponentProps, lazy, Suspense, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
 import '@/styles/markdown.css';
 
@@ -151,7 +152,7 @@ export function MarkdownRenderer({
   return (
     <div className="markdown-body">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkBreaks]}
         rehypePlugins={rehypePlugins}
         components={{
           // Strip the default <pre> wrapper — CodeBlock provides its own.
